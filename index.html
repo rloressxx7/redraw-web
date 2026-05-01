@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>$REDRAW — Grok's Masterpiece on Solana</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --gray:#c0c0c0;--light:#ececec;--white:#fff;--dark:#808080;
+  --darker:#444;--black:#000;--navy:#000080;--red:#cc0000;
+  --green:#008000;--yellow:#ffff00;--teal:#008080;
+  --pixel:'Press Start 2P',monospace;--vt:'VT323',monospace;
+}
+body{
+  background:var(--teal) url("data:image/svg+xml,%3Csvg width='4' height='4' viewBox='0 0 4 4' xmlns='http://www.w3.org/2000/svg'%3E%3Crect width='1' height='1' fill='rgba(0,0,0,.08)'/%3E%3C/svg%3E");
+  font-family:var(--pixel);color:var(--black);
+  padding-bottom:44px;min-height:100vh;
+}
+
+/* WINDOW */
+.window{background:var(--gray);border:3px solid;border-color:var(--white) var(--darker) var(--darker) var(--white);box-shadow:5px 5px 0 #000}
+.title-bar{height:24px;background:linear-gradient(90deg,#000080,#1084d0);display:flex;align-items:center;justify-content:space-between;padding:0 5px;color:#fff;font-size:7px;font-family:var(--pixel);user-select:none}
+.title-bar-left{display:flex;align-items:center;gap:6px}.title-icon{font-size:14px}
+.wbtns{display:flex;gap:2px}
+.wbtn{width:16px;height:14px;background:var(--gray);border:2px solid;border-color:var(--white) var(--darker) var(--darker) var(--white);display:flex;align-items:center;justify-content:center;font-size:8px;cursor:pointer;font-family:var(--pixel);color:#000}
+.wbtn:active{border-color:var(--darker) var(--white) var(--white) var(--darker)}
+
+/* MENU */
+.menubar{height:20px;background:var(--gray);border-bottom:1px solid var(--dark);display:flex;align-items:center;gap:1px;padding:0 4px}
+.mi{padding:2px 8px;font-size:7px;cursor:pointer;height:100%;display:flex;align-items:center}
+.mi:hover{background:var(--navy);color:#fff}
+.mi.hot{color:var(--red);font-weight:bold}
+
+/* TOOLBAR */
+.toolbar-strip{background:var(--gray);border-bottom:2px solid var(--dark);padding:4px 6px;display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.tsep{width:2px;height:24px;background:var(--dark);margin:0 3px}
+.tbtn{width:24px;height:24px;background:var(--gray);border:2px solid;border-color:var(--white) var(--darker) var(--darker) var(--white);display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer}
+.tbtn:hover,.tbtn.on{border-color:var(--darker) var(--white) var(--white) var(--darker);background:var(--light)}
+.tpal{display:flex;gap:2px;margin-left:4px}
+.tc{width:16px;height:16px;border:2px solid;border-color:var(--darker) var(--white) var(--white) var(--darker);cursor:pointer}
+
+/* TICKER */
+.ticker{background:#000;color:var(--yellow);font-size:8px;padding:5px 0;overflow:hidden;white-space:nowrap;border-top:2px solid var(--darker);border-bottom:2px solid var(--darker)}
+.ticker-inner{display:inline-block;animation:marquee 20s linear infinite}
+@keyframes marquee{from{transform:translateX(100vw)}to{transform:translateX(-100%)}}
+
+/* LAYOUT */
+.layout{display:flex;min-height:600px}
+.side-tools{width:46px;background:var(--gray);border-right:2px solid var(--dark);padding:4px;display:flex;flex-direction:column;align-items:center;gap:3px;flex-shrink:0}
+.stbtn{width:22px;height:22px;background:var(--gray);border:2px solid;border-color:var(--white) var(--darker) var(--darker) var(--white);display:flex;align-items:center;justify-content:center;font-size:8px;cursor:pointer;font-family:var(--pixel)}
+.stbtn:hover,.stbtn.on{border-color:var(--darker) var(--white) var(--white) var(--darker);background:var(--light)}
+.stdiv{width:100%;height:1px;background:var(--dark);margin:2px 0}
+
+/* CANVAS */
+.canvas{flex:1;background:#fff;overflow-y:auto;overflow-x:hidden;border:3px solid;border-color:var(--darker) var(--white) var(--white) var(--darker)}
+.canvas::-webkit-scrollbar{width:14px}
+.canvas::-webkit-scrollbar-track{background:var(--gray)}
+.canvas::-webkit-scrollbar-thumb{background:var(--gray);border:2px solid;border-color:var(--white) var(--darker) var(--darker) var(--white)}
+
+/* STATUS */
+.statusbar{height:20px;background:var(--gray);border-top:2px solid var(--dark);display:flex;align-items:center;gap:4px;padding:0 6px}
+.sc{font-size:6px;border:2px solid;border-color:var(--darker) var(--white) var(--white) var(--darker);padding:2px 8px;height:16px;display:flex;align-items:center}
+
+/* TASKBAR */
+.taskbar{position:fixed;bottom:0;left:0;right:0;height:28px;background:var(--gray);border-top:2px solid var(--white);display:flex;align-items:center;gap:4px;padding:2px 4px;z-index:900}
+.start-btn{background:var(--gray);border:2px solid;border-color:var(--white) var(--darker) var(--darker) var(--white);padding:2px 10px;font-family:var(--pixel);font-size:7px;font-weight:bold;cursor:pointer;display:flex;align-items:center;gap:5px}
+.start-btn:active{border-color:var(--darker) var(--white) var(--white) var(--darker)}
+.tb-task{background:var(--gray);border:2px solid;border-color:var(--darker) var(--white) var(--white) var(--darker);padding:2px 10px;font-size:7px}
+.tb-clock{margin-left:auto;background:var(--gray);border:2px solid;border-color:var(--darker) var(--white) var(--white) var(--darker);padding:2px 8px;font-size:7px}
+
+/* ── CONTENT ───────────────────────────── */
+
+/* HERO */
+.hero{padding:30px 24px 22px;background:#fff;border-bottom:3px solid #000;position:relative;overflow:hidden;text-align:center}
+.hero::before{content:'';position:absolute;inset:0;background-image:radial-gradient(circle,rgba(255,0,0,.06) 1px,transparent 1px),radial-gradient(circle,rgba(0,0,255,.04) 1px,transparent 1px);background-size:20px 20px,13px 13px;pointer-events:none}
+
+.hero-title{font-size:40px;color:var(--red);text-shadow:4px 4px 0 #000,-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000;display:inline-block;transform:rotate(-1.5deg);letter-spacing:6px;margin-bottom:10px;animation:wobble 3s ease-in-out infinite}
+@keyframes wobble{0%,100%{transform:rotate(-1.5deg) scale(1)}50%{transform:rotate(1deg) scale(1.02)}}
+
+.hero-tag{display:inline-block;background:var(--yellow);font-size:9px;padding:4px 12px;border:2px solid #000;transform:rotate(1deg);margin-bottom:22px}
+
+/* IMAGE FRAME */
+.img-frame-wrap{display:flex;justify-content:center;margin:0 auto 20px;position:relative}
+.img-frame{position:relative;width:280px;background:#fff;border:4px solid #000;box-shadow:7px 7px 0 #000}
+
+.img-inner{width:100%;aspect-ratio:1/1;background:repeating-linear-gradient(45deg,#f0f0f0 0,#f0f0f0 2px,#fafafa 2px,#fafafa 14px);overflow:hidden;border-bottom:2px solid #ddd;display:flex;align-items:center;justify-content:center;position:relative}
+.img-inner img{width:100%;height:100%;object-fit:cover;display:block}
+
+.ph{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:20px;color:#bbb;text-align:center}
+.ph-icon{font-size:52px}
+.ph-text{font-size:7px;line-height:2.2;color:#aaa}
+.ph-hint{font-size:6px;color:#ccc;background:#f5f5f5;border:1px dashed #ccc;padding:4px 8px;margin-top:4px}
+
+.img-caption{padding:10px 12px 12px;text-align:center}
+.img-caption-title{font-size:11px;margin-bottom:4px}
+.img-caption-sub{font-size:7px;color:#808080}
+
+/* GROK BADGE */
+.grok-badge{position:absolute;bottom:-16px;right:-16px;background:var(--navy);color:#fff;font-size:6px;padding:6px 9px;border:3px solid #000;box-shadow:3px 3px 0 #000;transform:rotate(3deg);z-index:10;line-height:2;text-align:center}
+.grok-badge .bi{font-size:15px;display:block;margin-bottom:2px}
+
+/* SECTION */
+.section{background:#fff;border-bottom:3px solid #000;padding:22px 24px;position:relative}
+.section:nth-child(even){background:#f8f8f8}
+.sec-title{font-size:9px;display:inline-block;background:var(--yellow);padding:4px 10px;border:2px solid #000;margin-bottom:16px;transform:rotate(-.8deg)}
+
+/* CA BOX */
+.ca-box{background:#fffde7;border:3px solid #000;padding:14px;text-align:center;cursor:pointer;position:relative;box-shadow:3px 3px 0 #000}
+.ca-box:hover{background:#fff9c4}
+.ca-label{font-size:7px;color:var(--navy);margin-bottom:6px}
+.ca-addr{font-family:var(--vt);font-size:20px;letter-spacing:1px;word-break:break-all}
+.ca-hint{font-size:6px;color:#999;margin-top:5px}
+.ca-copied{position:absolute;top:-24px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;font-size:7px;padding:3px 8px;border:2px solid #000;display:none}
+
+/* TOKENOMICS */
+.tok-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
+.tok-card{border:3px solid #000;padding:10px 8px;background:#fff;text-align:center;box-shadow:3px 3px 0 #000}
+.tok-lbl{font-size:6px;color:var(--dark);margin-bottom:6px}
+.tok-val{font-size:11px}
+
+.barchart{display:flex;flex-direction:column;gap:10px;margin-top:6px}
+.bar-row{display:flex;align-items:center;gap:8px}
+.bar-lbl{width:110px;font-size:6px;text-align:right;flex-shrink:0}
+.bar-track{flex:1;height:18px;border:2px solid #000;background:#fff;overflow:hidden}
+.bar-fill{height:100%}
+.bar-pct{font-size:6px;width:24px;flex-shrink:0}
+
+/* STEPS */
+.steps{display:flex;flex-direction:column;gap:10px}
+.step{display:flex;align-items:flex-start;gap:12px;border:2px solid #000;padding:12px;background:#fff;box-shadow:3px 3px 0 #000}
+.step-num{width:28px;height:28px;background:var(--red);color:#fff;border:2px solid #000;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0}
+.step-body{font-size:7px;line-height:2}
+.step-title{font-size:8px;margin-bottom:4px}
+
+/* ROADMAP */
+.roadmap{display:flex;flex-direction:column;gap:8px}
+.phase{display:flex;align-items:flex-start;gap:10px;border:2px solid #000;padding:10px 12px;background:#fff;box-shadow:2px 2px 0 #000}
+.pbadge{font-size:6px;padding:4px 6px;border:2px solid #000;white-space:nowrap;flex-shrink:0;color:#fff}
+.pbadge.done{background:var(--green)}.pbadge.hot{background:var(--red)}.pbadge.later{background:var(--navy)}
+.ptext{font-size:6px;line-height:2.2}
+
+/* SOCIALS */
+.soc-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:4px}
+.soc-btn{background:var(--gray);border:3px solid;border-color:var(--white) var(--darker) var(--darker) var(--white);padding:8px 16px;font-family:var(--pixel);font-size:8px;cursor:pointer;text-decoration:none;color:#000;display:flex;align-items:center;gap:7px;box-shadow:3px 3px 0 #000}
+.soc-btn:hover{background:var(--light);border-color:var(--darker) var(--white) var(--white) var(--darker)}
+.soc-btn:active{box-shadow:1px 1px 0 #000;transform:translate(1px,1px)}
+
+/* BUY BTN */
+.buy-btn{background:var(--green);color:#fff;border:3px solid;border-color:#90EE90 #006400 #006400 #90EE90;padding:12px 30px;font-family:var(--pixel);font-size:11px;cursor:pointer;display:inline-block;box-shadow:4px 4px 0 #000;animation:gpulse 1.2s step-end infinite;text-decoration:none}
+@keyframes gpulse{0%,100%{background:var(--green)}50%{background:#00a000}}
+.buy-btn:active{box-shadow:1px 1px 0 #000;transform:translate(2px,2px)}
+
+/* POPUP */
+.pop-overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9998;display:flex;align-items:center;justify-content:center}
+.popup{width:320px;background:var(--gray);border:3px solid;border-color:var(--white) var(--darker) var(--darker) var(--white);box-shadow:6px 6px 0 #000}
+.pop-body{padding:22px;text-align:center;background:#fff;margin:4px;border:2px solid var(--dark)}
+.pop-icon{font-size:38px;margin-bottom:10px}
+.pop-msg{font-size:8px;line-height:2.4;margin-bottom:6px}
+.pop-sub{font-size:6px;color:#999;margin-bottom:14px}
+
+/* MISC */
+.cursor{display:inline-block;width:8px;height:12px;background:#000;animation:blink .9s step-end infinite;vertical-align:middle;margin-left:2px}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.spark{display:inline-block;animation:blink .6s step-end infinite}
+.disclaimer{background:#000;padding:10px 20px;text-align:center;font-size:6px;color:#707070;line-height:2.6}
+
+@media(max-width:600px){
+  .side-tools{display:none}
+  .hero-title{font-size:26px}
+  .img-frame{width:220px}
+  .tok-grid{grid-template-columns:repeat(2,1fr)}
+  .soc-row{flex-direction:column;align-items:center}
+}
+</style>
+</head>
+<body>
+
+<!-- POPUP -->
+<div class="pop-overlay" id="overlay">
+  <div class="popup window">
+    <div class="title-bar">
+      <div class="title-bar-left"><span class="title-icon">⚠️</span><span>System Alert — redraw.exe</span></div>
+      <div class="wbtns"><div class="wbtn" onclick="closePopup()">✕</div></div>
+    </div>
+    <div class="pop-body">
+      <div class="pop-icon">🎨</div>
+      <div class="pop-msg">GROK HAS ENTERED<br>THE PAINT CANVAS.<br>THE MARKET WILL NEVER<br>BE THE SAME.</div>
+      <div class="pop-sub">This is not financial advice. DYOR.</div>
+      <button class="buy-btn" style="font-size:8px;padding:8px 22px;margin-top:4px" onclick="closePopup()">OK — LFG 🚀</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN WINDOW -->
+<div style="margin:16px auto 50px;max-width:940px;padding:0 8px">
+<div class="window">
+
+  <div class="title-bar">
+    <div class="title-bar-left"><span class="title-icon">🎨</span><span>$REDRAW.exe — Paint [Solana Edition]</span></div>
+    <div class="wbtns"><div class="wbtn">_</div><div class="wbtn">□</div><div class="wbtn">✕</div></div>
+  </div>
+
+  <div class="menubar">
+    <div class="mi">File</div>
+    <div class="mi">Edit</div>
+    <div class="mi">Image</div>
+    <div class="mi hot">Buy $RDRAW ▼</div>
+    <div class="mi">Colors</div>
+    <div class="mi">Help</div>
+  </div>
+
+  <div class="toolbar-strip">
+    <div class="tbtn on">✦</div><div class="tbtn">✏️</div><div class="tbtn">🪣</div>
+    <div class="tbtn">T</div><div class="tbtn">◻</div><div class="tbtn">⊕</div>
+    <div class="tsep"></div>
+    <div class="tbtn">💨</div><div class="tbtn">🖌</div><div class="tbtn">╱</div>
+    <div class="tbtn">▭</div><div class="tbtn">◯</div>
+    <div class="tsep"></div>
+    <div class="tpal">
+      <div class="tc" style="background:#000"></div><div class="tc" style="background:#fff"></div>
+      <div class="tc" style="background:#cc0000"></div><div class="tc" style="background:#000080"></div>
+      <div class="tc" style="background:#008000"></div><div class="tc" style="background:#ffff00"></div>
+      <div class="tc" style="background:#ff6600"></div><div class="tc" style="background:#9b59b6"></div>
+      <div class="tc" style="background:#008080"></div><div class="tc" style="background:#c0c0c0"></div>
+    </div>
+  </div>
+
+  <div class="ticker"><div class="ticker-inner">🎨 &nbsp; $RDRAW — GROK'S MASTERPIECE &nbsp;🚀&nbsp; BUY ON PUMP.FUN &nbsp;★&nbsp; AI-GENERATED ART ON-CHAIN &nbsp;✦&nbsp; 0% TAX · 100% VIBE &nbsp;★&nbsp; SOLANA &nbsp;🎨&nbsp; $RDRAW — GROK'S MASTERPIECE &nbsp;🚀&nbsp; BUY ON PUMP.FUN &nbsp;</div></div>
+
+  <div class="layout">
+
+    <!-- SIDE TOOLS -->
+    <div class="side-tools">
+      <div class="stbtn on">⬚</div><div class="stbtn">⌗</div>
+      <div class="stbtn">✏</div><div class="stbtn">▓</div>
+      <div class="stbtn">A</div><div class="stbtn">□</div><div class="stbtn">⊕</div>
+      <div class="stdiv"></div>
+      <div class="stbtn">∴</div><div class="stbtn">╲</div>
+      <div class="stbtn">╱</div><div class="stbtn">∫</div>
+      <div class="stbtn">▭</div><div class="stbtn">▢</div>
+      <div class="stbtn">◯</div><div class="stbtn">△</div>
+      <div class="stdiv"></div>
+      <div class="tc" style="background:#cc0000;width:18px;height:18px"></div>
+      <div class="tc" style="background:#000080;width:18px;height:18px"></div>
+      <div class="tc" style="background:#ffff00;width:18px;height:18px"></div>
+      <div class="tc" style="background:#008000;width:18px;height:18px"></div>
+      <div class="tc" style="background:#9b59b6;width:18px;height:18px"></div>
+      <div class="tc" style="background:#000;width:18px;height:18px"></div>
+    </div>
+
+    <!-- CANVAS -->
+    <div class="canvas" id="mainCanvas">
+
+      <!-- HERO -->
+      <div class="hero">
+        <span class="spark" style="position:absolute;top:14px;left:18px;font-size:14px">✦</span>
+        <span class="spark" style="position:absolute;top:14px;right:18px;font-size:14px;animation-delay:.4s">★</span>
+        <span class="spark" style="position:absolute;top:50px;left:10%;font-size:10px;animation-delay:.2s">✦</span>
+        <span class="spark" style="position:absolute;top:50px;right:10%;font-size:10px;animation-delay:.6s">★</span>
+
+        <div class="hero-title">$REDRAW</div><br>
+        <div class="hero-tag">🎨 GROK'S FINEST MASTERPIECE ON SOLANA</div>
+
+        <!-- ═══ IMAGE FRAME ═══ -->
+        <div class="img-frame-wrap">
+          <div class="img-frame">
+            <div class="img-inner" id="imgInner">
+
+              <!--
+              ╔══════════════════════════════════════════╗
+              ║   RESMİNİ EKLEMEK İÇİN:                  ║
+              ║   Bu div'i sil, aşağıdakini ekle:         ║
+              ║   <img src="grok.png" alt="REDRAW">       ║
+              ╚══════════════════════════════════════════╝
+              -->
+              <div class="ph" id="placeholder">
+                <div class="ph-icon">🖼️</div>
+                <div class="ph-text">
+                  Grok tarafından<br>oluşturulan resim<br>buraya gelecek
+                </div>
+                <div class="ph-hint">src="grok.png" ekle</div>
+              </div>
+
+            </div>
+            <div class="img-caption">
+              <div class="img-caption-title">REDRAW</div>
+              <div class="img-caption-sub">Painted by Grok AI · Solana 2024</div>
+            </div>
+            <div class="grok-badge">
+              <span class="bi">🤖</span>
+              CREATED BY<br>GROK AI
+            </div>
+          </div>
+        </div>
+        <!-- ═══ / IMAGE FRAME ═══ -->
+
+        <div style="font-size:7px;color:#777;line-height:2.4;margin-bottom:16px">
+          The most hand-crafted, AI-generated meme coin<br>on Solana. Grok painted it. We pump it. <span class="cursor"></span>
+        </div>
+        <div style="text-align:center">
+          <a href="https://pump.fun" target="_blank" class="buy-btn">🚀 BUY ON PUMP.FUN</a>
+        </div>
+        <div style="font-size:6px;color:#999;margin-top:12px">
+          Solana Network &nbsp;·&nbsp; pump.fun &nbsp;·&nbsp; 0% Tax &nbsp;·&nbsp; LP Burned &nbsp;·&nbsp; Mint Revoked
+        </div>
+      </div>
+
+      <!-- CONTRACT -->
+      <div class="section">
+        <div class="sec-title">📋 CONTRACT ADDRESS</div>
+        <div class="ca-box" onclick="copyCA()" id="caBox">
+          <div class="ca-label">Solana Token Address — Click to copy</div>
+          <div class="ca-addr" id="caText">BURAYA CONTRACT ADDRESS YAZI</div>
+          <div class="ca-hint">🖱 Click to copy</div>
+          <div class="ca-copied" id="caCopied">✓ Copied!</div>
+        </div>
+      </div>
+
+      <!-- TOKENOMICS -->
+      <div class="section">
+        <div class="sec-title">📊 TOKENOMICS</div>
+        <div class="tok-grid">
+          <div class="tok-card"><div class="tok-lbl">TOTAL SUPPLY</div><div class="tok-val" style="font-size:9px;color:var(--red)">1,000,000,000</div></div>
+          <div class="tok-card"><div class="tok-lbl">BUY / SELL TAX</div><div class="tok-val" style="color:var(--green)">0% / 0%</div></div>
+          <div class="tok-card"><div class="tok-lbl">LIQUIDITY</div><div class="tok-val" style="font-size:9px;color:var(--green)">🔒 BURNED</div></div>
+          <div class="tok-card"><div class="tok-lbl">MINT AUTH</div><div class="tok-val" style="font-size:9px;color:var(--red)">✕ REVOKED</div></div>
+        </div>
+        <div class="barchart">
+          <div style="font-size:7px;margin-bottom:2px">Token Distribution</div>
+          <div class="bar-row"><div class="bar-lbl">🌊 Liquidity Pool</div><div class="bar-track"><div class="bar-fill" style="width:80%;background:#4CAF50"></div></div><div class="bar-pct">80%</div></div>
+          <div class="bar-row"><div class="bar-lbl">👥 Community</div><div class="bar-track"><div class="bar-fill" style="width:15%;background:#2196F3"></div></div><div class="bar-pct">15%</div></div>
+          <div class="bar-row"><div class="bar-lbl">📢 Marketing</div><div class="bar-track"><div class="bar-fill" style="width:5%;background:#FF5722"></div></div><div class="bar-pct">5%</div></div>
+        </div>
+      </div>
+
+      <!-- HOW TO BUY -->
+      <div class="section">
+        <div class="sec-title">🛒 HOW TO BUY</div>
+        <div class="steps">
+          <div class="step"><div class="step-num">1</div><div class="step-body"><div class="step-title">💼 Get a Solana Wallet</div>Download Phantom Wallet from phantom.app — Chrome, iOS & Android available.</div></div>
+          <div class="step"><div class="step-num">2</div><div class="step-body"><div class="step-title">💰 Buy SOL</div>Purchase SOL from Binance, Coinbase or any exchange and send to your Phantom wallet.</div></div>
+          <div class="step"><div class="step-num">3</div><div class="step-body"><div class="step-title">🎯 Go to pump.fun</div>Visit pump.fun and paste the $RDRAW contract address in the search bar.</div></div>
+          <div class="step"><div class="step-num">4</div><div class="step-body"><div class="step-title">🚀 Buy &amp; HODL</div>Connect wallet, enter SOL amount, hit BUY. Welcome to the REDRAW army! 🎨</div></div>
+        </div>
+      </div>
+
+      <!-- ROADMAP -->
+      <div class="section">
+        <div class="sec-title">🗺️ ROADMAP</div>
+        <div class="roadmap">
+          <div class="phase"><div class="pbadge done">PHASE 1 ✓</div><div class="ptext">🤖 Grok creates the masterpiece image<br>📝 Contract deployed on Solana<br>🌐 Website live · Community formed</div></div>
+          <div class="phase"><div class="pbadge hot">PHASE 2 🔥</div><div class="ptext">📈 CoinGecko & CoinMarketCap listing<br>🐦 Twitter/X raids & viral moments<br>💎 1,000 holders milestone<br>📊 DEX Screener trending</div></div>
+          <div class="phase"><div class="pbadge later">PHASE 3 🌙</div><div class="ptext">🚀 10,000 holders & $1M market cap<br>🤖 Grok AI officially acknowledges $RDRAW<br>🖼️ NFT Collection — Grok AI Edition<br>🏆 CEX listing & moon mission</div></div>
+        </div>
+      </div>
+
+      <!-- COMMUNITY -->
+      <div class="section" style="text-align:center">
+        <div class="sec-title">📡 JOIN THE ARMY</div>
+        <div style="font-size:7px;line-height:2.4;margin-bottom:16px">Grok drew it. We pumped it. The canvas is not finished.<br>Join the REDRAW holders and paint the chart green. 🎨</div>
+        <div class="soc-row">
+          <a href="#" class="soc-btn"><span>🐦</span> Twitter / X</a>
+          <a href="#" class="soc-btn"><span>✈️</span> Telegram</a>
+          <a href="https://pump.fun" target="_blank" class="soc-btn"><span>🎯</span> pump.fun</a>
+          <a href="#" class="soc-btn"><span>💬</span> Discord</a>
+        </div>
+      </div>
+
+      <div class="disclaimer">
+        ⚠️ &nbsp; $RDRAW is a meme token with no intrinsic value or financial return expectation. &nbsp;·&nbsp;
+        Crypto investments carry extreme risk. &nbsp;·&nbsp; This is NOT financial advice. &nbsp;·&nbsp; DYOR. &nbsp;·&nbsp; 2024 REDRAW 🎨
+      </div>
+
+    </div><!-- /canvas -->
+  </div><!-- /layout -->
+
+  <div class="statusbar">
+    <div class="sc">🎨 REDRAW.exe</div>
+    <div class="sc">Solana Network</div>
+    <div class="sc" id="sCoords">x: 420, y: 69</div>
+    <div class="sc" id="sDate">—</div>
+    <div class="sc" style="margin-left:auto">For Help, press F1</div>
+  </div>
+
+</div><!-- /window -->
+</div>
+
+<!-- TASKBAR -->
+<div class="taskbar">
+  <button class="start-btn"><span>🖼</span> Start</button>
+  <div class="tb-task">🎨 REDRAW.exe</div>
+  <div class="tb-clock" id="tbClock">00:00</div>
+</div>
+
+<script>
+  function tick(){
+    const n=new Date();
+    document.getElementById('tbClock').textContent=String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0');
+    document.getElementById('sDate').textContent=n.toLocaleDateString('tr-TR');
+  }
+  tick(); setInterval(tick,1000);
+
+  document.getElementById('mainCanvas').addEventListener('mousemove',function(e){
+    const r=this.getBoundingClientRect();
+    document.getElementById('sCoords').textContent='x: '+Math.round(e.clientX-r.left)+', y: '+Math.round(e.clientY-r.top);
+  });
+
+  function closePopup(){ document.getElementById('overlay').style.display='none'; }
+
+  function copyCA(){
+    const txt=document.getElementById('caText').textContent.trim();
+    navigator.clipboard.writeText(txt).catch(()=>{});
+    const el=document.getElementById('caCopied');
+    el.style.display='block';
+    setTimeout(()=>{el.style.display='none';},2000);
+  }
+</script>
+</body>
+</html>
